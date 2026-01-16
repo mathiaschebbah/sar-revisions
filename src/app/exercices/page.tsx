@@ -1,11 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   CheckCircle2,
   XCircle,
@@ -13,7 +20,11 @@ import {
   BookOpen,
   Calculator,
   PenLine,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Trophy,
+  Sparkles,
 } from "lucide-react";
 
 interface Exercise {
@@ -324,9 +335,9 @@ La difference vient du **filtrage**: dans Chang-Roberts, seul le message du mini
 ];
 
 const difficultyColors = {
-  facile: "bg-green-100 text-green-800",
-  moyen: "bg-yellow-100 text-yellow-800",
-  difficile: "bg-red-100 text-red-800",
+  facile: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  moyen: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  difficile: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 const typeIcons = {
@@ -456,21 +467,41 @@ export default function ExercicesPage() {
 
                 {/* Hints */}
                 <div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleHints(exercise.id)}
-                    className="mb-2"
-                  >
-                    <Lightbulb className="h-4 w-4 mr-2" />
-                    {isHintsRevealed ? "Masquer les indices" : "Voir les indices"}
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            toggleHints(exercise.id);
+                            if (!isHintsRevealed) {
+                              toast.info("Indices reveles", {
+                                description: `${exercise.hints.length} indices disponibles`,
+                                icon: <Lightbulb className="h-4 w-4" />,
+                              });
+                            }
+                          }}
+                          className="mb-2"
+                        >
+                          <Lightbulb className="h-4 w-4 mr-2" />
+                          {isHintsRevealed ? "Masquer les indices" : "Voir les indices"}
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {exercise.hints.length}
+                          </Badge>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Afficher des indices pour vous aider</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   {isHintsRevealed && (
-                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg dark:bg-yellow-950/30 dark:border-yellow-800">
                       <ul className="space-y-2">
                         {exercise.hints.map((hint, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm">
-                            <ChevronRight className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+                            <ChevronRight className="h-4 w-4 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
                             <span>{hint}</span>
                           </li>
                         ))}
@@ -483,29 +514,39 @@ export default function ExercicesPage() {
                 <div>
                   <Button
                     variant={isSolutionRevealed ? "default" : "outline"}
-                    onClick={() => toggleSolution(exercise.id)}
+                    onClick={() => {
+                      toggleSolution(exercise.id);
+                      if (!isSolutionRevealed) {
+                        toast.success("Solution revelee", {
+                          description: "N'oubliez pas de comprendre chaque etape !",
+                          icon: <Sparkles className="h-4 w-4" />,
+                        });
+                      }
+                    }}
                   >
                     {isSolutionRevealed ? (
                       <>
-                        <XCircle className="h-4 w-4 mr-2" />
+                        <EyeOff className="h-4 w-4 mr-2" />
                         Masquer la solution
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 mr-2" />
                         Voir la solution
                       </>
                     )}
                   </Button>
                   {isSolutionRevealed && (
-                    <div className="mt-4 bg-green-50 border border-green-200 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-800">
+                    <div className="mt-4 bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-950/30 dark:border-green-800">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-800 dark:text-green-300">
                         <CheckCircle2 className="h-5 w-5" />
                         Solution
                       </h4>
-                      <div className="text-sm whitespace-pre-line prose prose-sm max-w-none">
-                        {exercise.solution}
-                      </div>
+                      <ScrollArea className="max-h-[500px]">
+                        <div className="text-sm whitespace-pre-line prose prose-sm max-w-none dark:prose-invert">
+                          {exercise.solution}
+                        </div>
+                      </ScrollArea>
                     </div>
                   )}
                 </div>

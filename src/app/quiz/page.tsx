@@ -1,17 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   CheckCircle2,
   XCircle,
   ArrowRight,
   RotateCcw,
   Trophy,
-  Brain
+  Brain,
+  Sparkles,
+  Timer,
+  Target,
 } from "lucide-react";
 
 interface Question {
@@ -143,6 +154,14 @@ export default function QuizPage() {
 
     if (index === question.correct) {
       setScore(score + 1);
+      toast.success("Bonne reponse !", {
+        description: "Continuez comme ca !",
+        icon: <Sparkles className="h-4 w-4" />,
+      });
+    } else {
+      toast.error("Pas tout a fait...", {
+        description: "Regardez l'explication ci-dessous.",
+      });
     }
   };
 
@@ -167,49 +186,80 @@ export default function QuizPage() {
 
   if (finished) {
     const percentage = Math.round((score / questions.length) * 100);
+    const getBadge = () => {
+      if (percentage >= 90) return { label: "Expert", color: "bg-yellow-500" };
+      if (percentage >= 70) return { label: "Avance", color: "bg-green-500" };
+      if (percentage >= 50) return { label: "Intermediaire", color: "bg-blue-500" };
+      return { label: "Debutant", color: "bg-gray-500" };
+    };
+    const badge = getBadge();
+
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card className="text-center">
-          <CardHeader>
-            <div className="mx-auto mb-4">
-              {percentage >= 70 ? (
-                <Trophy className="h-16 w-16 text-yellow-500" />
-              ) : (
-                <Brain className="h-16 w-16 text-primary" />
-              )}
-            </div>
-            <CardTitle className="text-2xl">Quiz termine !</CardTitle>
-            <CardDescription>Voici vos resultats</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-5xl font-bold text-primary">
-              {score}/{questions.length}
-            </div>
-            <div className="text-xl text-muted-foreground">
-              {percentage}% de bonnes reponses
-            </div>
-            <Progress value={percentage} className="h-3" />
-            <div className="text-sm text-muted-foreground">
-              {percentage >= 70
-                ? "Excellent ! Vous maitrisez bien les algorithmes d'election."
-                : percentage >= 50
-                  ? "Pas mal ! Revoyez les points ou vous avez fait des erreurs."
-                  : "Continuez a reviser, vous pouvez y arriver !"}
-            </div>
-          </CardContent>
-          <CardFooter className="justify-center gap-4">
-            <Button onClick={resetQuiz} variant="outline">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Recommencer
-            </Button>
-            <Button asChild>
-              <a href="/cours/chapitre-5">
-                Revoir le cours
-              </a>
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+      <TooltipProvider>
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
+          <Card className="text-center overflow-hidden">
+            <div className={`h-2 ${badge.color}`} />
+            <CardHeader className="pt-8">
+              <div className="mx-auto mb-4 relative">
+                {percentage >= 70 ? (
+                  <div className="relative">
+                    <Trophy className="h-20 w-20 text-yellow-500 animate-bounce" />
+                    <Sparkles className="h-6 w-6 text-yellow-400 absolute -top-2 -right-2 animate-pulse" />
+                  </div>
+                ) : (
+                  <Brain className="h-20 w-20 text-primary" />
+                )}
+              </div>
+              <CardTitle className="text-3xl">Quiz termine !</CardTitle>
+              <CardDescription className="text-base">Voici vos resultats</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pb-8">
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-6xl font-bold text-primary">
+                  {score}/{questions.length}
+                </div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge className={`${badge.color} text-white text-sm px-3 py-1`}>
+                      {badge.label}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Niveau atteint selon votre score</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="text-xl text-muted-foreground">
+                {percentage}% de bonnes reponses
+              </div>
+              <div className="max-w-xs mx-auto">
+                <Progress value={percentage} className="h-4" />
+              </div>
+              <Alert className={percentage >= 70 ? "border-green-200 bg-green-50 dark:bg-green-950/20" : "border-blue-200 bg-blue-50 dark:bg-blue-950/20"}>
+                <Target className="h-4 w-4" />
+                <AlertDescription>
+                  {percentage >= 70
+                    ? "Excellent ! Vous maitrisez bien les algorithmes d'election."
+                    : percentage >= 50
+                      ? "Pas mal ! Revoyez les points ou vous avez fait des erreurs."
+                      : "Continuez a reviser, vous pouvez y arriver !"}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+            <CardFooter className="justify-center gap-4 bg-muted/30 py-6">
+              <Button onClick={resetQuiz} variant="outline" size="lg">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Recommencer
+              </Button>
+              <Button asChild size="lg">
+                <a href="/cours/chapitre-5">
+                  Revoir le cours
+                </a>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </TooltipProvider>
     );
   }
 
@@ -243,16 +293,16 @@ export default function QuizPage() {
 
             if (showResult) {
               if (isCorrect) {
-                className += "border-green-500 bg-green-50 text-green-900";
+                className += "border-green-500 bg-green-50 text-green-900 dark:bg-green-950/30 dark:text-green-100";
               } else if (isSelected && !isCorrect) {
-                className += "border-red-500 bg-red-50 text-red-900";
+                className += "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-100";
               } else {
                 className += "border-muted bg-muted/50 text-muted-foreground";
               }
             } else {
               className += isSelected
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary hover:bg-muted/50";
+                ? "border-primary bg-primary/10"
+                : "border-border hover:border-primary hover:bg-muted/50 hover:shadow-sm";
             }
 
             return (
@@ -296,19 +346,19 @@ export default function QuizPage() {
           <CardContent className="pt-0">
             <div className={`p-4 rounded-lg ${
               selectedAnswer === question.correct
-                ? "bg-green-50 border border-green-200"
-                : "bg-amber-50 border border-amber-200"
+                ? "bg-green-50 border border-green-200 dark:bg-green-950/30 dark:border-green-800"
+                : "bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
             }`}>
               <h4 className="font-semibold mb-2 flex items-center gap-2">
                 {selectedAnswer === question.correct ? (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <span className="text-green-800">Correct !</span>
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="text-green-800 dark:text-green-300">Correct !</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="h-5 w-5 text-amber-600" />
-                    <span className="text-amber-800">Pas tout a fait...</span>
+                    <XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    <span className="text-amber-800 dark:text-amber-300">Pas tout a fait...</span>
                   </>
                 )}
               </h4>

@@ -5,12 +5,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   BookOpen,
   Clock,
   CheckCircle2,
   Circle,
-  PlayCircle
+  PlayCircle,
+  ArrowRight,
+  GraduationCap,
+  Sparkles,
+  ListChecks,
 } from "lucide-react";
 
 const chapters = [
@@ -101,29 +117,73 @@ export default function CoursPage() {
   const totalProgress = Math.round(
     chapters.reduce((acc, ch) => acc + ch.progress, 0) / chapters.length
   );
+  const completedChapters = chapters.filter(ch => ch.progress === 100).length;
+  const nextChapter = chapters.find(ch => ch.progress < 100);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Cours SAR</h1>
-        <p className="text-muted-foreground mb-4">
-          Systemes et Algorithmiques Repartis - Master 1 MIDO
-        </p>
-        <div className="flex items-center gap-4">
-          <div className="flex-1 max-w-md">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Progression globale</span>
-              <span className="font-medium">{totalProgress}%</span>
+    <TooltipProvider>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                <GraduationCap className="h-8 w-8 text-primary" />
+                Cours SAR
+              </h1>
+              <p className="text-muted-foreground">
+                Systemes et Algorithmiques Repartis - Master 1 MIDO
+              </p>
             </div>
-            <Progress value={totalProgress} className="h-2" />
+            {nextChapter && (
+              <Link href={`/cours/chapitre-${nextChapter.id}`}>
+                <Button className="gap-2">
+                  <PlayCircle className="h-4 w-4" />
+                  Continuer
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            )}
           </div>
-          <Badge variant="outline">
-            <Clock className="h-3 w-3 mr-1" />
-            ~5h de contenu
-          </Badge>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalProgress}%</p>
+                  <p className="text-xs text-muted-foreground">Progression</p>
+                </div>
+                <Progress value={totalProgress} className="ml-auto w-24 h-2" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-500/10">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{completedChapters}/{chapters.length}</p>
+                  <p className="text-xs text-muted-foreground">Termines</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/10">
+                  <Clock className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">~5h</p>
+                  <p className="text-xs text-muted-foreground">De contenu</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="chapters" className="space-y-6">
@@ -141,7 +201,7 @@ export default function CoursPage() {
                     <div className="flex items-center gap-3">
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold ${
                         chapter.progress === 100
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                           : chapter.progress > 0
                             ? "bg-primary/10 text-primary"
                             : "bg-muted text-muted-foreground"
@@ -253,6 +313,7 @@ export default function CoursPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
